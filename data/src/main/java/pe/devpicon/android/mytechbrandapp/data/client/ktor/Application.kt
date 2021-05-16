@@ -1,13 +1,13 @@
 package pe.devpicon.android.mytechbrandapp.data.client.ktor
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
+import pe.devpicon.android.mytechbrandapp.data.request.ProductRequest
+import pe.devpicon.android.mytechbrandapp.data.response.ProductResponse
 
 suspend fun main (){
     val client = HttpClient(CIO){
@@ -34,16 +34,3 @@ suspend fun main (){
     client.close()
 }
 
-data class ProductRequest(
-    val id:String,
-    val name:String,
-    val brand:String,
-    val model:String
-)
-
-data class ProductResponse(
-    val id:String,
-    val name:String,
-    val brand:String,
-    val model:String
-)
