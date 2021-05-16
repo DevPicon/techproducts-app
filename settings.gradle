@@ -8,3 +8,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "My TechBrand App"
 include ':app'
+include ':data'
