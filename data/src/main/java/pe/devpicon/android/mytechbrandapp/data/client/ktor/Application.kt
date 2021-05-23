@@ -4,33 +4,63 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.logging.*
-import io.ktor.client.request.*
-import io.ktor.http.*
+import pe.devpicon.android.mytechbrandapp.data.client.ProductService
+import pe.devpicon.android.mytechbrandapp.data.client.retrofit.buildRetrofit
+import pe.devpicon.android.mytechbrandapp.data.client.retrofit.getLoggingInterceptor
+import pe.devpicon.android.mytechbrandapp.data.client.retrofit.getOkHttpClient
+import pe.devpicon.android.mytechbrandapp.data.datasource.ProductRemoteDataSource
+import pe.devpicon.android.mytechbrandapp.data.datasource.ProductRemoteSouce
 import pe.devpicon.android.mytechbrandapp.data.request.ProductRequest
 import pe.devpicon.android.mytechbrandapp.data.response.ProductResponse
 
-suspend fun main (){
-    val client = HttpClient(CIO){
-        expectSuccess = false
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.ALL
-        }
-        install(JsonFeature){
-            serializer = GsonSerializer(){
-                setPrettyPrinting()
-                disableHtmlEscaping()
-            }
+suspend fun main() {
+    val ktorClient = getKtorClient()
+    val retrofitClient = buildRetrofit(getOkHttpClient(getLoggingInterceptor()))
+
+    val ktorProductService: ProductService = KtorProductService(ktorClient)
+    val retrofitProductService: ProductService = retrofitClient.create(ProductService::class.java)
+
+    val productRemoteDataSource: ProductRemoteSouce = ProductRemoteDataSource(
+        productService = ktorProductService
+    )
+
+    val retrofitProductDataSource: ProductRemoteSouce = ProductRemoteDataSource(
+        productService = retrofitProductService
+    )
+
+    productRemoteDataSource.createProduct(
+        ProductRequest(
+            id = "0002",
+            name = "an artifact",
+            brand = "Koscher",
+            model = "AIX02"
+        )
+    )
+
+    retrofitProductDataSource.createProduct(
+        ProductRequest(
+            id = "0003",
+            name = "other artifact",
+            brand = "Thomas",
+            model = "TH01"
+        )
+    )
+
+    println(productRemoteDataSource.getAllProducts())
+    println(retrofitProductDataSource.getAllProducts())
+}
+
+fun getKtorClient() = HttpClient(CIO) {
+    expectSuccess = false
+    install(Logging) {
+        logger = Logger.DEFAULT
+        level = LogLevel.ALL
+    }
+    install(JsonFeature) {
+        serializer = GsonSerializer() {
+            setPrettyPrinting()
+            disableHtmlEscaping()
         }
     }
-
-    client.post<Unit>("http://0.0.0.0:8080/api/product") {
-        contentType(ContentType.Application.Json)
-        body = ProductRequest("0003", "Microwave oven", "Oster", "RX-3816")
-    }
-
-    val response:List<ProductResponse> = client.get("http://0.0.0.0:8080/api/product")
-    println(response)
-    client.close()
 }
 

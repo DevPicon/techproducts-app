@@ -1,42 +1,43 @@
 package pe.devpicon.android.mytechbrandapp.data.client.retrofit
 
-import pe.devpicon.android.mytechbrandapp.data.response.ProductResponse
 import retrofit2.converter.gson.GsonConverterFactory
 
 import retrofit2.Retrofit
-import retrofit2.http.GET
 import okhttp3.OkHttpClient
 
 import okhttp3.logging.HttpLoggingInterceptor
+import pe.devpicon.android.mytechbrandapp.data.client.ProductService
+import pe.devpicon.android.mytechbrandapp.data.common.ProductURL
 
 
+suspend fun main() {
 
+    val logging = getLoggingInterceptor()
 
+    val client: OkHttpClient = getOkHttpClient(logging)
 
-suspend fun main(){
-
-    val logging = HttpLoggingInterceptor()
-    logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-
-    val client: OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(logging)
-        .build()
-
-    val retrofit = Retrofit.Builder()
-        .baseUrl("http://0.0.0.0:8080/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(client)
-        .build()
+    val retrofit = buildRetrofit(client)
 
     val service: ProductService = retrofit.create(ProductService::class.java)
 
-    println(service.getProducts())
+    //println(service.getProducts())
+
+    println(service.getProduct("0003"))
 
 }
 
-interface ProductService{
+fun getLoggingInterceptor() = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY
+    }
 
-    @GET("api/product")
-    suspend fun getProducts():List<ProductResponse>
+fun buildRetrofit(client: OkHttpClient) = Retrofit.Builder()
+    .baseUrl(ProductURL.BASE)
+    .addConverterFactory(GsonConverterFactory.create())
+    .client(client)
+    .build()
 
-}
+fun getOkHttpClient(logging: HttpLoggingInterceptor) =
+    OkHttpClient.Builder()
+        .addInterceptor(logging)
+        .build()
+
