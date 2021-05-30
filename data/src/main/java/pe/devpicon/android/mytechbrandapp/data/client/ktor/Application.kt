@@ -11,22 +11,9 @@ import pe.devpicon.android.mytechbrandapp.data.client.retrofit.getOkHttpClient
 import pe.devpicon.android.mytechbrandapp.data.datasource.ProductRemoteDataSource
 import pe.devpicon.android.mytechbrandapp.data.datasource.ProductRemoteSouce
 import pe.devpicon.android.mytechbrandapp.data.request.ProductRequest
-import pe.devpicon.android.mytechbrandapp.data.response.ProductResponse
 
 suspend fun main() {
-    val ktorClient = getKtorClient()
-    val retrofitClient = buildRetrofit(getOkHttpClient(getLoggingInterceptor()))
-
-    val ktorProductService: ProductService = KtorProductService(ktorClient)
-    val retrofitProductService: ProductService = retrofitClient.create(ProductService::class.java)
-
-    val productRemoteDataSource: ProductRemoteSouce = ProductRemoteDataSource(
-        productService = ktorProductService
-    )
-
-    val retrofitProductDataSource: ProductRemoteSouce = ProductRemoteDataSource(
-        productService = retrofitProductService
-    )
+    val productRemoteDataSource: ProductRemoteSouce = createKtoProductService()
 
     productRemoteDataSource.createProduct(
         ProductRequest(
@@ -36,6 +23,8 @@ suspend fun main() {
             model = "AIX02"
         )
     )
+
+    val retrofitProductDataSource = createRetrofitProductService()
 
     retrofitProductDataSource.createProduct(
         ProductRequest(
@@ -49,6 +38,24 @@ suspend fun main() {
     println(productRemoteDataSource.getAllProducts())
     println(retrofitProductDataSource.getAllProducts())
 }
+
+fun createKtoProductService(): ProductRemoteSouce {
+    val ktorClient = getKtorClient()
+    val ktorProductService: ProductService = KtorProductService(ktorClient)
+    return ProductRemoteDataSource(
+        productService = ktorProductService
+    )
+}
+
+fun createRetrofitProductService(): ProductRemoteSouce {
+    val retrofitClient = buildRetrofit(getOkHttpClient(getLoggingInterceptor()))
+    val retrofitProductService: ProductService = retrofitClient.create(ProductService::class.java)
+
+    return ProductRemoteDataSource(
+        productService = retrofitProductService
+    )
+}
+
 
 fun getKtorClient() = HttpClient(CIO) {
     expectSuccess = false
